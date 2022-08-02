@@ -7,8 +7,7 @@ from multiprocessing import Process, Queue
 import bottle
 import prometheus_client as prom
 
-mod = imp.load_source('function',
-                      '/kubeless/%s.py' % os.getenv('MOD_NAME'))
+mod = imp.load_source('function', f"/kubeless/{os.getenv('MOD_NAME')}.py")
 func = getattr(mod, os.getenv('FUNC_HANDLER'))
 func_port = os.getenv('FUNC_PORT', 8080)
 

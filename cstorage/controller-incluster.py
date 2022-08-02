@@ -37,7 +37,7 @@ class Trigger(object):
         return self._metadata["name"]
             
     def any_versions(self):
-        return "name=" + self.crd_name()
+        return f"name={self.crd_name()}"
     
     def subscription(self):
         return self._spec["subscription"]
@@ -63,35 +63,34 @@ def get_functions(selector):
     return functions['items']
     
 def create_selector(func_selectors):
-    selector = []
-    for keys in func_selectors.keys():
-        selector.append(keys + '=' + func_selectors[keys])
+    selector = [f'{keys}={func_selectors[keys]}' for keys in func_selectors.keys()]
     return ",".join(selector)
 
 def cloudstorage(subscription, project, func_selectors):
-    
+
     def callback(message):
+        sys.stdout = open(f"{str(os.getpid())}.out", "a", buffering=0)
+        sys.stderr = open(f"{str(os.getpid())}_error.out", "a", buffering=0)
         sys.stdout = open(str(os.getpid()) + ".out", "a", buffering=0)
-        sys.stderr = open(str(os.getpid()) + "_error.out", "a", buffering=0)
-        print message
         # TODO: Add error handling for svc selection and post requests
-    
+
         services = v1.list_service_for_all_namespaces(label_selector=create_selector(func_selectors))
         for svc in services.items:
-            svc_url = 'http://%s.%s:%s' % (svc.metadata.name, svc.metadata.namespace, str(svc.spec.ports[0].port))
+            svc_url = f'http://{svc.metadata.name}.{svc.metadata.namespace}:{str(svc.spec.ports[0].port)}'
+
             # use line below when running in-cluster
             requests.post(svc_url, data=message.data)
-            # remove line below when running in-cluster
-            #requests.post('http://192.168.99.100:31352', data= message.data)
+                    # remove line below when running in-cluster
+                    #requests.post('http://192.168.99.100:31352', data= message.data)
         message.ack()
-    
-    sys.stdout = open(str(os.getpid()) + ".out", "a", buffering=0)
-    sys.stderr = open(str(os.getpid()) + "_error.out", "a", buffering=0)
-        
+
+    sys.stdout = open(f"{str(os.getpid())}.out", "a", buffering=0)
+    sys.stderr = open(f"{str(os.getpid())}_error.out", "a", buffering=0)
+
     subscriber = pubsub_v1.SubscriberClient()
     subscription_path = subscriber.subscription_path(project, subscription)
     subscriber.subscribe(subscription_path, callback=callback)
-    
+
     while True:
         time.sleep(60)
 
@@ -113,7 +112,7 @@ def update_meta(trigger):
         
 def delete_meta(name, pid):
     for p in pid:
-        logging.warning("check name %s and pid %s" % (p[0],str(p[1])))
+        logging.warning(f"check name {p[0]} and pid {str(p[1])}")
         if p[0] == name:
             p[1].terminate()
             p[1].join()

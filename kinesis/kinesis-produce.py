@@ -25,11 +25,11 @@ def put_to_stream(thing_id, property_value, property_timestamp):
                         Data=json.dumps(payload),
                         PartitionKey=thing_id)
 
+thing_id = 'aa-bb'
+
 while True:
     property_value = random.randint(40, 120)
     property_timestamp = calendar.timegm(datetime.utcnow().timetuple())
-    thing_id = 'aa-bb'
-
     put_to_stream(thing_id, property_value, property_timestamp)
 
     # wait for 5 second

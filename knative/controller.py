@@ -17,9 +17,8 @@ google_credentials_path = os.environ['GOOGLE_APPLICATION_CREDENTIALS']
 sink_url = os.environ['SINK']
 
 def write_credentials():
-  fh=open(google_credentials_path, 'w')
-  fh.write(str(google_credentials))
-  fh.close() 
+  with open(google_credentials_path, 'w') as fh:
+    fh.write(str(google_credentials)) 
 
 def callback(message):
     print(message.data.decode())
@@ -47,7 +46,7 @@ def callback(message):
 
 write_credentials()
 sub = pubsub_v1.SubscriberClient()
-sub_name = 'projects/%s/subscriptions/%s' % (gcp_project, gcs_subscription)
+sub_name = f'projects/{gcp_project}/subscriptions/{gcs_subscription}'
 
 future = sub.subscribe(sub_name, callback)
 future.result()

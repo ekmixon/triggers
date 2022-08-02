@@ -28,7 +28,7 @@ def main():
     ext_beta1 = client.ExtensionsV1beta1Api()
 
     aws = boto3.client('apigateway', region_name='us-east-1')
-    
+
     for apis in aws.get_rest_apis()['items']:
         if apis['name'] == 'kubeless':
             apiid = apis['id']
@@ -42,13 +42,13 @@ def main():
     def process_meta(t, ing, apiid, rootid):
         if t == "DELETED":
             logging.warning("ingress %s has been deleted", ing.ing_name())
-            
+
             resources = aws.get_resources(restApiId=apiid)
             for resource in resources['items']:
-                path = '/' + ing.ing_name()
+                path = f'/{ing.ing_name()}'
                 if resource['path'] == path:
                     res = aws.delete_resource(restApiId=apiid, resourceId=resource['id'])
-            # process_delete(ing)
+                    # process_delete(ing)
         elif t == "MODIFIED":
             logging.warning("ingress %s has been updated. Endpoint is %s", ing.ing_name(), ing.ing_route())
             # process_update(ing)
@@ -59,7 +59,7 @@ def main():
                 res = aws.create_resource(restApiId=apiid, parentId=rootid, pathPart=ing.ing_name())
                 resid = res['id']
                 res = aws.put_method(restApiId=apiid, resourceId=resid, httpMethod='POST', authorizationType='NONE')
-                uri = 'http://' + ing.ing_route()
+                uri = f'http://{ing.ing_route()}'
                 aws.put_integration(restApiId=apiid, resourceId=resid, httpMethod='POST', type='HTTP', integrationHttpMethod='POST', uri=uri)
             except:
                 pass

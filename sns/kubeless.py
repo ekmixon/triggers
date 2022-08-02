@@ -27,7 +27,7 @@ group = mod_name + func_handler
 
 queue = sqs.get_queue_by_name(QueueName=queue_name)
 
-mod = imp.load_source('function', '/kubeless/%s.py' % mod_name)
+mod = imp.load_source('function', f'/kubeless/{mod_name}.py')
 func = getattr(mod, func_handler)
 
 func_hist = prom.Histogram('function_duration_seconds',
@@ -51,13 +51,11 @@ def handle(msg):
             p = Process(target=funcWrap, args=(q,msg,))
             p.start()
             p.join(timeout)
-            # If thread is still active
-            if p.is_alive():
-                p.terminate()
-                p.join()
-                raise Exception('Timeout while processing the function')
-            else:
+            if not p.is_alive():
                 return q.get()
+            p.terminate()
+            p.join()
+            raise Exception('Timeout while processing the function')
 
 if __name__ == '__main__':
     prom.start_http_server(8080)

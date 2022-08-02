@@ -48,13 +48,11 @@ def handle(msg):
             p = Process(target=funcWrap, args=(q,msg,))
             p.start()
             p.join(timeout)
-            # If thread is still active
-            if p.is_alive():
-                p.terminate()
-                p.join()
-                raise Exception('Timeout while processing the function')
-            else:
+            if not p.is_alive():
                 return q.get()
+            p.terminate()
+            p.join()
+            raise Exception('Timeout while processing the function')
 
 if __name__ == '__main__':
     prom.start_http_server(8080)

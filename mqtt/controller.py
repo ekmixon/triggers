@@ -37,7 +37,7 @@ class Trigger(object):
         return self._metadata["name"]
             
     def any_versions(self):
-        return "name=" + self.crd_name()
+        return f"name={self.crd_name()}"
     
     def topic(self):
         return self._spec["topic"]
@@ -60,9 +60,7 @@ def get_functions(selector):
     return functions['items']
     
 def create_selector(func_selectors):
-    selector = []
-    for keys in func_selectors.keys():
-        selector.append(keys + '=' + func_selectors[keys])
+    selector = [f'{keys}={func_selectors[keys]}' for keys in func_selectors.keys()]
     return ",".join(selector)
 
 def event2func(topic, func_selectors):
@@ -120,7 +118,7 @@ def update_meta(trigger):
         
 def delete_meta(name, pid):
     for p in pid:
-        logging.warning("check name %s and pid %s" % (p[0],str(p[1])))
+        logging.warning(f"check name {p[0]} and pid {str(p[1])}")
         if p[0] == name:
             p[1].terminate()
             p[1].join()
